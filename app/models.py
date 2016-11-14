@@ -2,20 +2,20 @@
 
 from collections import OrderedDict
 
+
 class HouseModel(object):
     """docstring for HouseModel"""
 
     HOUSE_MODEL_DEF_COLUMNS = OrderedDict({
-        'xiaoqu': None,
-        'type': None,
-        'square': None,
-        'orientation': None,
-        'floor': None,
-        'build': None,
-        'tradedate': None,
-        'persquareprice': None,
-        'totalprice': None
-        })
+        'xiaoqu': '小区',
+        'type': '户型',
+        'square': '面积',
+        'orientation': '朝向',
+        'floor': '楼层',
+        'build': '竣工',
+        'tradedate': '交易日期',
+        'persquareprice': '单价',
+        'totalprice': '总价'})
 
     @property
     def values(self):

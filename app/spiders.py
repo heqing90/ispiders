@@ -4,6 +4,7 @@
 import requests
 import datetime
 import csv
+import pickle
 from bs4 import BeautifulSoup
 from app import g_logger
 from models import HouseModel
@@ -18,9 +19,13 @@ class LianJiaHouseSpider(object):
     """docstring for HouseSpider"""
     LIANJIA_CHENGJIAO_BASEURL = 'http://cd.lianjia.com/chengjiao/'
     LIANJIA_CHENGJIAO_DBFILE = '{}/lianjia.csv'.format(config.PROJECT_DIR)
+    LIANJIA_CHENGJIAO_GRAB_DBFILE = '{}/lianjia_grab'.format(config.PROJECT_DIR)
 
     def __init__(self):
-        pass
+        self.grab_urls = []
+        if os.path.exists(self.LIANJIA_CHENGJIAO_GRAB_DBFILE):
+            with open(self.LIANJIA_CHENGJIAO_GRAB_DBFILE, 'rb') as fd:
+                self.grab_urls = pickle.load(fd)
 
     def run(self):
         for url in self.get_urls():
@@ -33,9 +38,14 @@ class LianJiaHouseSpider(object):
                 return
             house_models = []
             for item in tradedHoustList:
-                # 房屋详情链接，唯一标识符
-                # houseUrl = item.find("h2").a["href"] or ''
                 # https://github.com/leven-ls/homeless
+
+                # 房屋详情链接，唯一标识符
+                houseUrl = item.find("h2").a["href"] or ''
+                if houseUrl not in self.grab_urls:
+                    self.grab_urls.append(houseUrl)
+                else:
+                    continue
                 # 抓取 小区，户型，面积
                 title = item.find("h2").a
                 if title:
@@ -82,12 +92,15 @@ class LianJiaHouseSpider(object):
             yield '{url}pg{page}'.format(url=self.LIANJIA_CHENGJIAO_BASEURL, page=index)
 
     def save(self, house_models):
-        # is_need_write_header = True
-        # if os.path.exists(self.LIANJIA_CHENGJIAO_DBFILE):
-        #     is_need_write_header = False
+        is_need_write_header = True
+        if os.path.exists(self.LIANJIA_CHENGJIAO_DBFILE):
+            is_need_write_header = False
         with open(self.LIANJIA_CHENGJIAO_DBFILE, 'a+') as csv_fd:
             csv_writer = csv.DictWriter(csv_fd, fieldnames=HouseModel.HOUSE_MODEL_DEF_COLUMNS)
-            # if is_need_write_header:
-            #     csv_writer.writeheader()
+            if is_need_write_header:
+                csv_fd.write(','.join(HouseModel.HOUSE_MODEL_DEF_COLUMNS.values()))
+                csv_fd.write('\n')
             for model in house_models:
                 csv_writer.writerow(model.values)
+        with open(self.LIANJIA_CHENGJIAO_GRAB_DBFILE, 'wb') as grab_fd:
+            pickle.dump(self.grab_urls, grab_fd)

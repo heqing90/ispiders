@@ -9,4 +9,3 @@ class ILogger(object):
 
     def debug(self, *args):
         print(' '.join([repr(arg) for arg in args]))
-
