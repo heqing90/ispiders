@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
+from log import get_mod_logger
 
 
 class HouseModel(object):
@@ -17,6 +18,8 @@ class HouseModel(object):
         'persquareprice': '单价',
         'totalprice': '总价'})
 
+    logger = get_mod_logger('House')
+
     @property
     def values(self):
         return self.__values
@@ -27,6 +30,7 @@ class HouseModel(object):
         for name, value in kwargs.iteritems():
             if name in self.HOUSE_MODEL_DEF_COLUMNS:
                 self.__values[name] = value
+        self.logger.info('Get house info: {}'.format(self.values))
 
     def __setattr__(self, name, value):
         if name in self.HOUSE_MODEL_DEF_COLUMNS:
